@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 
 # 1. Download the zip file from GitHub
-ZIP_URL = 'https://github.com/your-username/your-repo-name/raw/main/pneumonia_detector_model.zip'
+ZIP_URL = 'https://github.com/JBEIZ/Pneumonia-Classification/raw/main/pneumonia_detector_model.zip'
 ZIP_PATH = 'pneumonia_detector_model.zip'
 MODEL_PATH = 'pneumonia_detector_model.h5'
 
