@@ -1,1 +1,6 @@
 streamlit
+streamlit
+tensorflow
+pillow
+numpy
+requests
