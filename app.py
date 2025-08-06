@@ -7,7 +7,7 @@ from PIL import Image
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 
-MODEL_URL = "https://github.com/yourusername/yourrepo/raw/main/pneumonia_detector_model.zip"
+MODEL_URL = "https://github.com/JBEIZ/Pneumonia-Classification/raw/main/pneumonia_detector_model.zip"
 MODEL_ZIP = "pneumonia_detector_model.zip"
 MODEL_FILE = "pneumonia_detector_model.h5"
 
