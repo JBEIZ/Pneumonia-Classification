@@ -1,49 +1,52 @@
 import streamlit as st
 import zipfile
-import os
 import requests
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
+import os
 import numpy as np
 from PIL import Image
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
 
-# 1. Download the zip file from GitHub
-ZIP_URL = 'https://github.com/JBEIZ/Pneumonia-Classification/raw/main/pneumonia_detector_model.zip'
-ZIP_PATH = 'pneumonia_detector_model.zip'
-MODEL_PATH = 'pneumonia_detector_model.h5'
+MODEL_URL = "https://github.com/yourusername/yourrepo/raw/main/pneumonia_detector_model.zip"
+MODEL_ZIP = "pneumonia_detector_model.zip"
+MODEL_FILE = "pneumonia_detector_model.h5"
 
 @st.cache_resource
-def download_and_extract_model():
-    if not os.path.exists(MODEL_PATH):
-        # Download zip
-        with open(ZIP_PATH, 'wb') as f:
-            response = requests.get(ZIP_URL)
-            f.write(response.content)
-        # Extract zip
-        with zipfile.ZipFile(ZIP_PATH, 'r') as zip_ref:
-            zip_ref.extractall()
-    return load_model(MODEL_PATH)
+def download_and_load_model():
+    if not os.path.exists(MODEL_FILE):
+        # Download the zip file
+        with requests.get(MODEL_URL, stream=True) as r:
+            with open(MODEL_ZIP, 'wb') as f:
+                f.write(r.content)
+        # Unzip it
+        with zipfile.ZipFile(MODEL_ZIP, 'r') as zip_ref:
+            zip_ref.extractall(".")
+    return load_model(MODEL_FILE)
 
-model = download_and_extract_model()
+model = download_and_load_model()
 
-# Streamlit UI
-st.title("Pneumonia Detector")
-st.write("Upload a chest X-ray image to detect pneumonia.")
+st.title("Pneumonia Detection from Chest X-ray")
+st.write("Upload a chest X-ray image (preferably grayscale or RGB)")
 
-uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
+
+def preprocess_image(img):
+    img = img.resize((150, 150))
+    img = img.convert("RGB")  # Ensure 3 channels
+    img_array = img_to_array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
 
 if uploaded_file:
-    img = Image.open(uploaded_file).convert("RGB")
-    st.image(img, caption='Uploaded Image', use_column_width=True)
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.write("Classifying...")
 
-    # Preprocess image (resize to match your model input)
-    img_resized = img.resize((150, 150))
-    img_array = image.img_to_array(img_resized)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
+    preprocessed = preprocess_image(image)
+    prediction = model.predict(preprocessed)[0][0]
 
-    # Predict
-    prediction = model.predict(img_array)
-    result = "Pneumonia Detected" if prediction[0][0] > 0.5 else "Normal"
-    
-    st.subheader("Result:")
-    st.success(result)
+    label = "Pneumonia" if prediction >= 0.5 else "Normal"
+    confidence = prediction if prediction >= 0.5 else 1 - prediction
+
+    st.markdown(f"### Prediction: **{label}**")
+    st.markdown(f"Confidence: `{confidence:.2f}`")
